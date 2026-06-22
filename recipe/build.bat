@@ -56,11 +56,35 @@ if "%ERRORLEVEL%" NEQ "0" exit /b 1
 python -c "import sys; p=sys.argv[1]; content=open('third_party/systemlibs/protobuf/MODULE.bazel').read(); open('third_party/systemlibs/protobuf/MODULE.bazel','w').write(content.replace('ABSEIL_VERSION',p))" "!ABSEIL_VERSION!"
 if "%ERRORLEVEL%" NEQ "0" exit /b 1
 
-:: Override rules_cc to a version that doesn't use _cc_internal.freeze
+:: Create patch for rules_cc to provide _cc_internal.freeze stub
+:: when cc_common.internal_DO_NOT_USE is missing (no official bazel release has it)
+set PATCH_DIR=%SRC_DIR%\rules_cc_patch
+if not exist "%PATCH_DIR%" mkdir "%PATCH_DIR%"
+>"%PATCH_DIR%\freeze.patch" echo --- a/cc/private/cc_internal.bzl
+>>"%PATCH_DIR%\freeze.patch" echo +++ b/cc/private/cc_internal.bzl
+>>"%PATCH_DIR%\freeze.patch" echo @@ -1,7 +1,15 @@
+>>"%PATCH_DIR%\freeze.patch" echo  """Gracefully resolve cc_internal."""
+>>"%PATCH_DIR%\freeze.patch" echo  
+>>"%PATCH_DIR%\freeze.patch" echo  -# buildifier: disable=native-cc-common
+>>"%PATCH_DIR%\freeze.patch" echo  -cc_internal = cc_common.internal_DO_NOT_USE^(^) if hasattr^(cc_common, "internal_DO_NOT_USE"^) else struct^(^)
+>>"%PATCH_DIR%\freeze.patch" echo  +# buildifier: disable=native-cc-common
+>>"%PATCH_DIR%\freeze.patch" echo  +_inner = cc_common.internal_DO_NOT_USE^(^) if hasattr^(cc_common, "internal_DO_NOT_USE"^) else None
+>>"%PATCH_DIR%\freeze.patch" echo  +if _inner:
+>>"%PATCH_DIR%\freeze.patch" echo  +    cc_internal = _inner
+>>"%PATCH_DIR%\freeze.patch" echo  +else:
+>>"%PATCH_DIR%\freeze.patch" echo  +    # Provide stub implementations when the bazel binary doesn't expose cc_internal
+>>"%PATCH_DIR%\freeze.patch" echo  +    def _freeze_impl^(x^):
+>>"%PATCH_DIR%\freeze.patch" echo  +        return x
+>>"%PATCH_DIR%\freeze.patch" echo  +    cc_internal = struct^(freeze = _freeze_impl, check_private_api = lambda ^*args, ^**kwargs: None^)
+>>"%PATCH_DIR%\freeze.patch" echo.
+
+:: Override rules_cc with patched archive
 >> MODULE.bazel echo.
->> MODULE.bazel echo single_version_override(
+>> MODULE.bazel echo archive_override(
 >> MODULE.bazel echo     module_name = "rules_cc",
->> MODULE.bazel echo     version = "0.2.17",
+>> MODULE.bazel echo     urls = ["https://github.com/bazelbuild/rules_cc/archive/refs/tags/0.2.19.tar.gz"],
+>> MODULE.bazel echo     patches = ["@//:rules_cc_patch/freeze.patch"],
+>> MODULE.bazel echo     patch_strip = 1,
 >> MODULE.bazel echo )
 
 :: Copy release files

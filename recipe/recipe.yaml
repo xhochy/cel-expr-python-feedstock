@@ -22,7 +22,7 @@ requirements:
     - ${{ stdlib('c') }}
     - ${{ compiler('c') }}
     - ${{ compiler('cxx') }}
-    - bazel 8.*
+    - bazel 8.7.*
     - if: unix
       then:
         - bazel-toolchain
