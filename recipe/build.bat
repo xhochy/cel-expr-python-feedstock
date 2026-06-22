@@ -56,6 +56,13 @@ if "%ERRORLEVEL%" NEQ "0" exit /b 1
 python -c "import sys; p=sys.argv[1]; content=open('third_party/systemlibs/protobuf/MODULE.bazel').read(); open('third_party/systemlibs/protobuf/MODULE.bazel','w').write(content.replace('ABSEIL_VERSION',p))" "!ABSEIL_VERSION!"
 if "%ERRORLEVEL%" NEQ "0" exit /b 1
 
+:: Override rules_cc to a version that doesn't use _cc_internal.freeze
+>> MODULE.bazel echo.
+>> MODULE.bazel echo single_version_override(
+>> MODULE.bazel echo     module_name = "rules_cc",
+>> MODULE.bazel echo     version = "0.2.17",
+>> MODULE.bazel echo )
+
 :: Copy release files
 copy /Y release\pyproject.toml .
 if "%ERRORLEVEL%" NEQ "0" exit /b 1

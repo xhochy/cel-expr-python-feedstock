@@ -33,6 +33,16 @@ sed -i "s:ABSEIL_VERSION:${ABSEIL_VERSION}:" \
     third_party/systemlibs/absl/MODULE.bazel \
     third_party/systemlibs/protobuf/MODULE.bazel
 
+# Override rules_cc to a version that doesn't use _cc_internal.freeze
+# (needed for Windows compatibility, harmless on Unix)
+cat >> MODULE.bazel <<'PATCH'
+
+single_version_override(
+    module_name = "rules_cc",
+    version = "0.2.17",
+)
+PATCH
+
 cp release/pyproject.toml release/setup.py .
 # Substitute $VERSION in pyproject.toml with the value of VERSION.
 sed -i "s/\$VERSION/${PKG_VERSION}/g" pyproject.toml
