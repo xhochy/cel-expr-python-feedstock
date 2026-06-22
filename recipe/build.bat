@@ -4,6 +4,9 @@ copy release\setup.py .
 REM Remove any windows --remote_cache= line from .bazelrc to avoid issues with CI
 sed -i "/windows --remote_cache=/d" .bazelrc
 
+REM Point Bazel at the MSYS2 bash provided by m2-base.
+set "BAZEL_SH=%BUILD_PREFIX%\Library\usr\bin\bash.exe"
+
 REM Substitute $VERSION in pyproject.toml with the value of PKG_VERSION.
 powershell -NoProfile -Command "(Get-Content pyproject.toml) -replace '\$VERSION', $env:PKG_VERSION | Set-Content pyproject.toml"
 
