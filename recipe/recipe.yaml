@@ -14,8 +14,8 @@ source:
     - 0001-Use-system-dependencies.patch
 
 build:
-  skip: match(python, '<3.11') or win
-  number: 0
+  skip: match(python, '<3.14')
+  number: 1
 
 requirements:
   build:
@@ -24,15 +24,18 @@ requirements:
     - ${{ compiler('cxx') }}
     - bazel 8.*
     - bazel-toolchain
-    - sed
+    - if: unix
+      then: sed
   host:
     - python
     - setuptools
-    - libabseil
-    - libabseil-bazel-systemlib
-    - libprotobuf-bazel-systemlib
-    - libprotobuf
-    - protobuf-bazel-rules
+    - if: unix
+      then:
+        - libabseil
+        - libabseil-bazel-systemlib
+        - libprotobuf-bazel-systemlib
+        - libprotobuf
+        - protobuf-bazel-rules
     - pip
   run:
     - python
