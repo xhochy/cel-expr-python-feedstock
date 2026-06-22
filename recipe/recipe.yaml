@@ -28,6 +28,8 @@ requirements:
       then:
         - sed
         - bazel-toolchain
+      else:
+        - bazel 8.5.*
   host:
     - python
     - setuptools
