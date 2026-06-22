@@ -30,6 +30,7 @@ requirements:
         - bazel-toolchain
       else:
         - m2-base
+        - m2-sed
   host:
     - python
     - setuptools
