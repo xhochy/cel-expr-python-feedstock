@@ -31,6 +31,7 @@ requirements:
       else:
         - m2-base
         - m2-sed
+        - m2-conda-epoch >=20250515   # force modern m2 package set
   host:
     - python
     - setuptools
